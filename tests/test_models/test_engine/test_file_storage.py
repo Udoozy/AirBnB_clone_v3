@@ -16,7 +16,7 @@ from models.state import State
 from models.user import User
 import json
 import os
-import pep8
+import pycodestyle
 import unittest
 FileStorage = file_storage.FileStorage
 classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
@@ -32,14 +32,14 @@ class TestFileStorageDocs(unittest.TestCase):
 
     def test_pep8_conformance_file_storage(self):
         """Test that models/engine/file_storage.py conforms to PEP8."""
-        pep8s = pep8.StyleGuide(quiet=True)
+        pep8s = pycodestyle.StyleGuide(quiet=True)
         result = pep8s.check_files(['models/engine/file_storage.py'])
         self.assertEqual(result.total_errors, 0,
                          "Found code style errors (and warnings).")
 
     def test_pep8_conformance_test_file_storage(self):
         """Test tests/test_models/test_file_storage.py conforms to PEP8."""
-        pep8s = pep8.StyleGuide(quiet=True)
+        pep8s = pycodestyle.StyleGuide(quiet=True)
         result = pep8s.check_files(['tests/test_models/test_engine/\
 test_file_storage.py'])
         self.assertEqual(result.total_errors, 0,
@@ -113,3 +113,42 @@ class TestFileStorage(unittest.TestCase):
         with open("file.json", "r") as f:
             js = f.read()
         self.assertEqual(json.loads(string), json.loads(js))
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_get(self):
+        """
+        Testing an instance obtained
+        """
+        storage = FileStorage()
+        storage.reload()
+        state_sample = {"name": "Abuja"}
+        state_instance = State(**state_sample)
+        storage.new(state_instance)
+        storage.save()
+        added_state = storage.get(State, state_instance.id)
+
+        self.assertEqual(state_instance, state_sample)
+        fake_state_id = storage.get(State, 'fake_id')
+        self.assertEqual(fake_state_id, None)
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_count(self):
+        """
+        Test method for counting the number of state
+        """
+        storage = FileStorage()
+        storage.reload()
+        state_sample = {"name": "Arizona"}
+        state_instance = State(**state_sample)
+        storage.new(state_instance)
+
+        city_info = {"name": "Enugu", "state_id": state_instance.id}
+        city_instance = City(**city_info)
+        storage.new(city_instance)
+        storage.save
+
+        sate_count = storage.count(State)
+        self.assertEqual(sate_count, len(storage.all(State)))
+
+        all_sate_count = storage.count()
+        self.assertEqual(all_sate_count, len(storage.all()))

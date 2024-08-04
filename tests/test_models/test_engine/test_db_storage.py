@@ -16,7 +16,7 @@ from models.state import State
 from models.user import User
 import json
 import os
-import pep8
+import pycodestyle
 import unittest
 DBStorage = db_storage.DBStorage
 classes = {"Amenity": Amenity, "City": City, "Place": Place,
@@ -32,14 +32,14 @@ class TestDBStorageDocs(unittest.TestCase):
 
     def test_pep8_conformance_db_storage(self):
         """Test that models/engine/db_storage.py conforms to PEP8."""
-        pep8s = pep8.StyleGuide(quiet=True)
+        pep8s = pycodestyle.StyleGuide(quiet=True)
         result = pep8s.check_files(['models/engine/db_storage.py'])
         self.assertEqual(result.total_errors, 0,
                          "Found code style errors (and warnings).")
 
     def test_pep8_conformance_test_db_storage(self):
         """Test tests/test_models/test_db_storage.py conforms to PEP8."""
-        pep8s = pep8.StyleGuide(quiet=True)
+        pep8s = pycodestyle.StyleGuide(quiet=True)
         result = pep8s.check_files(['tests/test_models/test_engine/\
 test_db_storage.py'])
         self.assertEqual(result.total_errors, 0,
@@ -78,11 +78,81 @@ class TestFileStorage(unittest.TestCase):
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_all_no_class(self):
         """Test that all returns all rows when no class is passed"""
+        state_sample = {"name": "Callifonia"}
+        new_state = State(**state_sample)
+        models.storage.new(new_state)
+        models.storage.save()
+        session = model.storage._DBStorage__session
+        d_objects = session.query(State).all()
+        self.assertTrue(len(d_objects) > 0)
 
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_new(self):
         """test that new adds an object to the database"""
+        state_sample = {"name": "Nairobi"}
+        new_state = State(**state_sample)
+
+        models.storage.new(new_state)
+        session = models.storage._DBStorage__session
+        added_state = session.query(State).filter_by(id=new_state.id).first()
+
+        self.assertEqual(added_state.id, new_state.id)
+        self.assertEqual(added_state.name, new_state.name)
+        self.assertIsNotNone(added_state)
 
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_save(self):
         """Test that save properly saves objects to file.json"""
+        state_sample = {"name": "Lagos"}
+        new_state = State(**state_sample)
+        models.storage.new(new_state)
+
+        models.storage.save()
+
+        session = models.storage._DBStorage__session
+        added_state = session.query(State).filter_by(id=new_state.id).first()
+
+        self.assertEqual(added_state.id, new_state.id)
+        self.assertEqual(added_state.name, new_state.name)
+        self.assertIsNotNone(added_state)
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_get(self):
+        """
+        Testing an instance obtained
+        """
+        storage = models.storage
+
+        storage.reload()
+        state_sample = {"name": "Abuja"}
+
+        state_instance = State(**state_sample)
+        storage.new(state_instance)
+        storage.save()
+
+        added_state = storage.get(State, state_instance.id)
+        self.assertEqual(state_instance, state_sample)
+        fake_state_id = storage.get(State, 'fake_id')
+        self.assertEqual(fake_state_id, None)
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_count(self):
+        """
+        Test method for counting the number of state
+        """
+        storage = models.storage
+        storage.reload()
+        state_sample = {"name": "Arizona"}
+        state_instance = State(**state_sample)
+        storage.new(state_instance)
+
+        city_info = {"name": "Enugu", "state_id": state_instance.id}
+        city_instance = City(**city_info)
+        storage.new(city_instance)
+        storage.save
+
+        sate_count = storage.count(State)
+        self.assertEqual(sate_count, len(storage.all(State)))
+
+        all_sate_count = storage.count()
+        self.assertEqual(all_sate_count, len(storage.all()))

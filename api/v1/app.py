@@ -16,7 +16,8 @@ app_host = os.getenv('HBNB_API_HOST', '0.0.0.0')
 app_port = int(os.getenv('HBNB_API_PORT', '5000'))
 app.url_map.strict_slashes = False
 app.register_blueprint(app_views)
-CORS(app, resources={'/*': {'origins':app_host}})
+CORS(app, resources={'/*': {'origins': app_host}})
+
 
 @app.teardown_appcontext
 def teardown_handler(exception):
@@ -25,12 +26,14 @@ def teardown_handler(exception):
     """
     storage.close()
 
+
 @app.errorhanlder(404)
 def not_found(error):
     """
     This is coustomized error handler
     """
     return jsonify(error='Not found'), 404
+
 
 @app.errorhandler(400)
 def error_400(error):

@@ -11,5 +11,5 @@ from flask import jsonify
 def ap_status():
     """
     """
-    resp_status = {"status": "OK"}
-    return jsonify(resp_status)
+    response = {"status": "OK"}
+    return jsonify(response)

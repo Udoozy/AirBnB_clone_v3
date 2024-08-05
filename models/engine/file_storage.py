@@ -90,5 +90,5 @@ class FileStorage:
         if cls in classes.values():
             all_instance = self.all(cls)
             return len(all_instance)
-        if not in classes.values():
+        if cls not in classes.values():
             return

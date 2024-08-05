@@ -9,7 +9,7 @@ from os import getenv
 
 app = Flask(__name__)
 
-app.register_blueprint(app_app_views)
+app.register_blueprint(app_views)
 
 
 if __name__ == '__name__':
